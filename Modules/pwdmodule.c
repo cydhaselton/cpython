@@ -72,7 +72,12 @@ mkpwent(struct passwd *p)
     SETS(setIndex++, p->pw_passwd);
     PyStructSequence_SET_ITEM(v, setIndex++, _PyLong_FromUid(p->pw_uid));
     PyStructSequence_SET_ITEM(v, setIndex++, _PyLong_FromGid(p->pw_gid));
+#if defined(HAVE_PASSWD_GECOS_FIELD)
     SETS(setIndex++, p->pw_gecos);
+#else
+    SETS(setIndex++, Py_None);
+    Py_INCREF(Py_None);
+#endif
     SETS(setIndex++, p->pw_dir);
     SETS(setIndex++, p->pw_shell);
 

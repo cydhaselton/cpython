@@ -4819,6 +4819,11 @@ AS_CASE($with_ensurepip,
 AC_MSG_RESULT($ENSUREPIP)
 AC_SUBST(ENSUREPIP)
 
+AC_CHECK_MEMBER([struct passwd.pw_gecos],
+          [AC_DEFINE(HAVE_PASSWD_GECOS_FIELD, 1, [Define if <pwd.h> defines field passwd.pw_gecos])],
+          [],
+          [[#include <pwd.h>]])
+
 # generate output files
 AC_CONFIG_FILES(Makefile.pre Modules/Setup.config Misc/python.pc Misc/python-config.sh)
 AC_CONFIG_FILES([Modules/ld_so_aix], [chmod +x Modules/ld_so_aix])
