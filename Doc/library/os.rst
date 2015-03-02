@@ -218,6 +218,18 @@ process and user.
    .. versionadded:: 3.2
 
 
+.. function:: get_shell_executable()
+
+   Return  a  path   to  the  standard  system   shell  executable  --
+   :command:`sh`  program on  POSIX  (default: :const:`'/bin/sh'`)  or
+   :envvar:`ComSpec`   command   processor    on   Windows   (default:
+   :file:`%SystemRoot%\\system32\\cmd.exe`).
+
+   Availability: Unix, Windows
+
+   .. versionadded:: 3.5
+
+
 .. function:: getegid()
 
    Return the effective group id of the current process.  This corresponds to the

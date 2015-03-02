@@ -612,6 +612,32 @@ def get_exec_path(env=None):
     return path_list.split(pathsep)
 
 
+if sys.platform == "win32":
+    def get_shell_executable():
+        """Return path to the command processor specified by %ComSpec%.
+
+        Default: %SystemRoot%\system32\cmd.exe
+        """
+        return (environ.get('ComSpec') or
+                path.join(environ.get('SystemRoot', r'C:\Windows'),
+                          r'system32\cmd.exe'))
+else: # POSIX
+    def get_shell_executable():
+        """Return path to the standard system shell executable.
+
+        Default: '/bin/sh'
+        """
+        for dirpath in defpath.split(pathsep):
+            if dirpath: # exclude '' (cwd)
+                sh = path.join(dirpath, 'sh')
+                if access(sh, F_OK | X_OK) and path.isfile(sh):
+                    #NOTE: allow symlinks e.g., /bin/sh on Ubuntu may be dash
+                    return sh
+        # normally, we should not get here, defpath should contain the
+        # path to the standard shell
+        return '/bin/sh'
+
+
 # Change environ to automatically call putenv(), unsetenv if they exist.
 from _collections_abc import MutableMapping
 

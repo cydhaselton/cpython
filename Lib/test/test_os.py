@@ -691,6 +691,35 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
         self.assertTrue(cm.exception.__suppress_context__)
 
 
+class ShellExecutableTests(unittest.TestCase):
+    # test os.get_shell_executable()
+    def _test_get_shell_executable(self, env):
+        saved_environ = os.environ
+        try:
+            os.environ = env # test with env environment
+            sh = os.get_shell_executable()
+            self.assertTrue(sh) # not empty, not None
+            self.assertTrue(os.path.exists(sh))
+            option = "/c" if sys.platform == 'win32' else "-c"
+            #NOTE: `exit` should work even with an empty environment
+            self.assertEqual(subprocess.call([sh, option, "exit 5"]), 5)
+        finally:
+            os.environ = saved_environ
+
+    def test_get_shell_executable(self):
+        self._test_get_shell_executable(os.environ)
+
+    def test_get_shell_executable_invalid_nonempty_path(self):
+        env = {'SystemRoot': os.environ.get('SystemRoot'),
+               'PATH': '\0'}
+        self._test_get_shell_executable(env)
+
+    @unittest.skipIf(sys.platform == 'win32',
+                     "Empty env. is not supported on Win32")
+    def test_get_shell_executable_empty_environment(self):
+        self._test_get_shell_executable({})
+
+
 class WalkTests(unittest.TestCase):
     """Tests for os.walk()."""
 
@@ -2529,6 +2558,7 @@ def test_main():
         FileTests,
         StatAttributeTests,
         EnvironTests,
+        ShellExecutableTests,
         WalkTests,
         FwalkTests,
         MakedirTests,
