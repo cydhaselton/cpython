@@ -868,10 +868,17 @@ mpd_parse_fmt_str(mpd_spec_t *spec, const char *fmt, int caps)
         }
         spec->type = *cp++;
         spec->type = (spec->type == 'N') ? 'G' : 'g';
+#ifdef __ANDROID__
+        spec->dot = ".";
+        spec->sep = ",':
+        spec->grouping = "\3";
+#else
         lc = localeconv();
         spec->dot = lc->decimal_point;
         spec->sep = lc->thousands_sep;
         spec->grouping = lc->grouping;
+#endif
+
         if (mpd_validate_lconv(spec) < 0) {
             return 0; /* GCOV_NOT_REACHED */
         }

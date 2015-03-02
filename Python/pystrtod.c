@@ -177,8 +177,12 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
 
     fail_pos = NULL;
 
+#ifdef __ANDROID__
+    decimal_point = "."; 
+#else
     locale_data = localeconv();
     decimal_point = locale_data->decimal_point;
+#endif
     decimal_point_len = strlen(decimal_point);
 
     assert(decimal_point_len != 0);
@@ -378,8 +382,12 @@ PyOS_string_to_double(const char *s,
 Py_LOCAL_INLINE(void)
 change_decimal_from_locale_to_dot(char* buffer)
 {
+#ifdef __ANDROID__
+    const char *decimal_point = ".";
+#else
     struct lconv *locale_data = localeconv();
     const char *decimal_point = locale_data->decimal_point;
+#endif
 
     if (decimal_point[0] != '.' || decimal_point[1] != 0) {
         size_t decimal_point_len = strlen(decimal_point);

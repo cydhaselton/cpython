@@ -667,6 +667,7 @@ get_locale_info(int type, LocaleInfo *locale_info)
 {
     switch (type) {
     case LT_CURRENT_LOCALE: {
+#ifndef __ANDROID__
         struct lconv *locale_data = localeconv();
         locale_info->decimal_point = PyUnicode_DecodeLocale(
                                          locale_data->decimal_point,
@@ -682,6 +683,7 @@ get_locale_info(int type, LocaleInfo *locale_info)
         }
         locale_info->grouping = locale_data->grouping;
         break;
+#endif // __ANDROID__
     }
     case LT_DEFAULT_LOCALE:
         locale_info->decimal_point = PyUnicode_FromOrdinal('.');

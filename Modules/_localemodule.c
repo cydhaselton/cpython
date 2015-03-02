@@ -141,6 +141,11 @@ PyLocale_localeconv(PyObject* self)
     if (!result)
         return NULL;
 
+#ifdef __ANDROID__
+    /* Don't even try on Android's broken locale.h. */
+    goto failed;
+#else
+
     /* if LC_NUMERIC is different in the C library, use saved value */
     l = localeconv();
 
@@ -195,6 +200,7 @@ PyLocale_localeconv(PyObject* self)
     RESULT_INT(p_sign_posn);
     RESULT_INT(n_sign_posn);
     return result;
+#endif // __ANDROID__
 
   failed:
     Py_XDECREF(result);
