@@ -23,6 +23,14 @@
 #define PYTHONHOMEHELP "<prefix>/pythonX.X"
 #endif
 
+/* Fix for broken Android mbstowcs, from rjmatthews62@gmail.com */
+#ifdef __ANDROID__
+size_t wcstombs(char * dest, wchar_t *source, int maxlen);
+size_t mbstowcs(wchar_t *dest, char * source, int maxlen);
+#define wcstombs android_wcstombs
+#define mbstowcs android_wcstombs
+#endif
+
 #include "pygetopt.h"
 
 #define COPYRIGHT \

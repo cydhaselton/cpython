@@ -38,6 +38,13 @@
 #include "docstrings.h"
 #include "memory.h"
 
+/* Fix for broken Android mbstowcs, from rjmatthews62@gmail.com */
+#ifdef __ANDROID__
+size_t android_wcstombs(char * dest, wchar_t *source, int maxlen);
+size_t android_mbstowcs(wchar_t *dest, char * source, int maxlen);
+#define wcstombs android_wcstombs
+#define mbstowcs android_wcstombs
+#endif
 
 #if !defined(MPD_VERSION_HEX) || MPD_VERSION_HEX < 0x02040100
   #error "libmpdec version >= 2.4.1 required"

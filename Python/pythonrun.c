@@ -39,6 +39,48 @@
 #define PATH_MAX MAXPATHLEN
 #endif
 
+/* the following defines are from rjmatthews62@gmail.com, specifically from his
+ * notes on cross compiling Python for Android.  In Android mbstowcs is very broken
+ * the next lines define it here.
+ */
+
+#ifdef __ANDROID__
+size_t android_mbstowcs(wchar_t *dest, char * in, int maxlen)
+{
+  wchar_t *out = dest;
+  int size = 0;
+  if (in)
+  {
+    while(*in && size<maxlen) {
+      if (*in < 128)
+        *out++ = *in++;
+      else
+        *out++ = 0xdc00 + *in++;
+      size += 1; 
+     }
+   }
+  *out = 0;
+  return size;
+}
+
+size_t android_wcstombs(char * dest, wchar_t *source, int maxlen)
+{
+  wchar_t c;
+  int i;
+  for (i=0; i<maxlen && source[i]; i++)
+  {
+    c=source[i]
+    if (c >= 0xdc800 && c <= 0xdcff)
+    {
+      /* UTF-8b surrogate */
+      c-=0xdc800;
+    }
+    if (dest) dest[i]=c;
+  }
+  return i;
+}
+#endif 
+
 _Py_IDENTIFIER(builtins);
 _Py_IDENTIFIER(excepthook);
 _Py_IDENTIFIER(flush);

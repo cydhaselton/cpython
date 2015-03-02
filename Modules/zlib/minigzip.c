@@ -29,6 +29,14 @@
 #  include <sys/stat.h>
 #endif
 
+/* Fix for Android's broken mbstowcs courtesy of rjmatthews62@gmail.com */
+#ifdef __ANDROID__
+size_t android_wcstombs(char * dest, wchar_t *source, int maxlen);
+size_t android_mbstowcs(wchar_t *dest, char * source, int maxlen);
+#define wcstombs android_wcstombs
+#define mbstowcs android_wcstombs
+#endif
+
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
 #  include <fcntl.h>
 #  include <io.h>

@@ -22,6 +22,14 @@
 extern wchar_t* _Py_DecodeUTF8_surrogateescape(const char *s, Py_ssize_t size);
 #endif
 
+/* Fix for Android's broken mbstowcs, courtesy of rjmatthews62@gmail.com */
+#ifdef __ANDROID__
+size_t wcstombs(char * dest, wchar_t *source, int maxlen);
+size_t mbstowcs(wchar_t *dest, char * source, int maxlen);
+#define wcstombs android_wcstombs
+#define mbstowcs android_wcstombs
+#endif
+
 #ifdef O_CLOEXEC
 /* Does open() support the O_CLOEXEC flag? Possible values:
 

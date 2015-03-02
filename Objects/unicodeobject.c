@@ -47,6 +47,13 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <windows.h>
 #endif
 
+#ifdef __ANDROID__
+size_t android_wcstombs(char * dest, wchar_t *source, int maxlen);
+size_t android_mbstowcs(wchar_t *dest, char * source, int maxlen);
+#define wcstombs android_wcstombs
+#define mbstowcs android_wcstombs
+#ifdef
+
 /*[clinic input]
 class str "PyUnicodeObject *" "&PyUnicode_Type"
 [clinic start generated code]*/

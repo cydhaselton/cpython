@@ -15,6 +15,14 @@
 #endif
 #endif
 
+/* Fix for Android's broken mbstowcs, from rjmatthews62@gmail.com */
+#ifdef __ANDROID__
+size_t android_wcstombs(char * dest, wchar_t *source, int maxlen);
+size_t android_mbstowcs(wchar_t *dest, char * source, int maxlen);
+#define wcstombs android_wcstombs
+#define mbstowcs android_wcstombs
+#endif
+
 /* Local functions */
 local void gz_reset OF((gz_statep));
 local gzFile gz_open OF((const void *, int, const char *));
