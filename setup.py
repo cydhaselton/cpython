@@ -574,7 +574,8 @@ class PyBuildExt(build_ext):
                                libraries=math_libs) )
 
         # time libraries: librt may be needed for clock_gettime()
-        time_libs = []
+        # floatsleep() needs math_libs for fmod() and floor()
+        time_libs = list(math_libs)
         lib = sysconfig.get_config_var('TIMEMODULE_LIB')
         if lib:
             time_libs.append(lib)
@@ -631,7 +632,9 @@ class PyBuildExt(build_ext):
             missing.append('spwd')
 
         # select(2); not on ancient System V
-        exts.append( Extension('select', ['selectmodule.c']) )
+        # pyepoll_poll needs math_libs for ceil()
+        exts.append( Extension('select', ['selectmodule.c'],
+                               libraries=math_libs) )
 
         # Fred Drake's interface to the Python parser
         exts.append( Extension('parser', ['parsermodule.c']) )
@@ -655,7 +658,10 @@ class PyBuildExt(build_ext):
         # Operations on audio samples
         # According to #993173, this one should actually work fine on
         # 64-bit platforms.
-        exts.append( Extension('audioop', ['audioop.c']) )
+
+        # audioop needs math_libs for floor() in multiple functions.
+        exts.append( Extension('audioop', ['audioop.c'],
+                               libraries=math_libs) )
 
         # readline
         do_readline = self.compiler.find_library_file(lib_dirs, 'readline')
@@ -1927,8 +1933,10 @@ class PyBuildExt(build_ext):
                         libraries=[],
                         sources=sources,
                         depends=depends)
+        # function my_sqrt() needs math library for sqrt()
         ext_test = Extension('_ctypes_test',
-                             sources=['_ctypes/_ctypes_test.c'])
+                             sources=['_ctypes/_ctypes_test.c'],
+                             libraries=['m'])
         self.extensions.extend([ext, ext_test])
 
         if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
