@@ -1,5 +1,9 @@
 
 /* Python interpreter main program for frozen scripts */
+/* For Android, all references to oldloc are commented out
+ * Additionally references to PyMem_RawStrdup() are commented out
+ * as they cause a segfault in the newly built python binary
+ */
 
 #include "Python.h"
 #include <locale.h>
@@ -19,7 +23,7 @@ Py_FrozenMain(int argc, char **argv)
     int i, n, sts = 1;
     int inspect = 0;
     int unbuffered = 0;
-    char *oldloc = NULL;
+/*  char *oldloc = NULL; */
     wchar_t **argv_copy = NULL;
     /* We need a second copies, as Python might modify the first one. */
     wchar_t **argv_copy2 = NULL;
@@ -46,13 +50,13 @@ Py_FrozenMain(int argc, char **argv)
         setbuf(stderr, (char *)NULL);
     }
 
-    oldloc = _PyMem_RawStrdup(setlocale(LC_ALL, NULL));
+   /*  oldloc = _PyMem_RawStrdup(setlocale(LC_ALL, NULL));
     if (!oldloc) {
         fprintf(stderr, "out of memory\n");
         goto error;
     }
 
-    setlocale(LC_ALL, "");
+    setlocale(LC_ALL, ""); */
     for (i = 0; i < argc; i++) {
         argv_copy[i] = _Py_char2wchar(argv[i], NULL);
         argv_copy2[i] = argv_copy[i];
@@ -63,9 +67,9 @@ Py_FrozenMain(int argc, char **argv)
             goto error;
         }
     }
-    setlocale(LC_ALL, oldloc);
+    /* setlocale(LC_ALL, oldloc);
     PyMem_RawFree(oldloc);
-    oldloc = NULL;
+    oldloc = NULL; */
 
 #ifdef MS_WINDOWS
     PyInitFrozenExtensions();
@@ -108,6 +112,6 @@ error:
             PyMem_RawFree(argv_copy2[i]);
         PyMem_RawFree(argv_copy2);
     }
-    PyMem_RawFree(oldloc);
+   /*  PyMem_RawFree(oldloc); */
     return sts;
 }

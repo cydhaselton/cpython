@@ -307,9 +307,17 @@ get_locale_encoding(void)
         return NULL;
     }
     return get_codec_name(codeset);
+/* following is to avoid segfault on Android in newly built python binary
+ * when it attempts to run setup.py
+ * patch provided by Ryan Gonzales 
+ */
 #else
+    char* m
     PyErr_SetNone(PyExc_NotImplementedError);
-    return NULL;
+    /* return NULL; */
+    m = malloc(6);
+    strcopy(m, "ascii");
+    return m;
 #endif
 }
 

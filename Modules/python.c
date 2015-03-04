@@ -63,9 +63,12 @@ main(int argc, char **argv)
         argv_copy2[i] = argv_copy[i];
     }
     argv_copy2[argc] = argv_copy[argc] = NULL;
-
-    setlocale(LC_ALL, oldloc);
-    PyMem_RawFree(oldloc);
+/* following lines are commented out as part of a fix
+ * wherein the newly built python binary throws a segfault
+ * when attempting to run setup.py
+ */
+/*    setlocale(LC_ALL, oldloc); */
+/*    PyMem_RawFree(oldloc); */
     res = Py_Main(argc, argv_copy);
     for (i = 0; i < argc; i++) {
         PyMem_RawFree(argv_copy2[i]);
