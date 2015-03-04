@@ -552,6 +552,8 @@ class PyBuildExt(build_ext):
 
         # Check for MacOS X, which doesn't need libm.a at all
         math_libs = ['m']
+        # Android needs the -libc, -libm, -libdl and -libpython3.4m explicitly linked
+        sys_libs = ['c', 'dl', 'm', 'python3.4m']
         if host_platform == 'darwin':
             math_libs = []
 
@@ -563,88 +565,89 @@ class PyBuildExt(build_ext):
         #
 
         # array objects
-        exts.append( Extension('array', ['arraymodule.c']) )
+        exts.append( Extension('array', ['arraymodule.c'], libraries=sys_libs) )
         # complex math library functions
         exts.append( Extension('cmath', ['cmathmodule.c', '_math.c'],
                                depends=['_math.h'],
-                               libraries=math_libs) )
+                               libraries=sys_libs) )
         # math library functions, e.g. sin()
         exts.append( Extension('math',  ['mathmodule.c', '_math.c'],
                                depends=['_math.h'],
-                               libraries=math_libs) )
+                               libraries=sys_libs) )
 
         # time libraries: librt may be needed for clock_gettime()
         # floatsleep() needs math_libs for fmod() and floor()
-        time_libs = list(math_libs)
+        # for Android we want sys_libs, which includes math_libs
+        time_libs = []
         lib = sysconfig.get_config_var('TIMEMODULE_LIB')
         if lib:
             time_libs.append(lib)
 
         # time operations and variables
         exts.append( Extension('time', ['timemodule.c'],
-                               libraries=time_libs) )
-        exts.append( Extension('_datetime', ['_datetimemodule.c']) )
+                               libraries=sys_libs) )
+        exts.append( Extension('_datetime', ['_datetimemodule.c'], libraries=sys_libs) )
         # random number generator implemented in C
-        exts.append( Extension("_random", ["_randommodule.c"]) )
+        exts.append( Extension("_random", ["_randommodule.c"], libraries=sys_libs) )
         # bisect
-        exts.append( Extension("_bisect", ["_bisectmodule.c"]) )
+        exts.append( Extension("_bisect", ["_bisectmodule.c"], libraries=sys_libs) )
         # heapq
-        exts.append( Extension("_heapq", ["_heapqmodule.c"]) )
+        exts.append( Extension("_heapq", ["_heapqmodule.c"], libraries=sys_libs) )
         # C-optimized pickle replacement
-        exts.append( Extension("_pickle", ["_pickle.c"]) )
+        exts.append( Extension("_pickle", ["_pickle.c"], libraries=sys_libs) )
         # atexit
-        exts.append( Extension("atexit", ["atexitmodule.c"]) )
+        exts.append( Extension("atexit", ["atexitmodule.c"], libraries=sys_libs) )
         # _json speedups
-        exts.append( Extension("_json", ["_json.c"]) )
+        exts.append( Extension("_json", ["_json.c"], libraries=sys_libs) )
         # Python C API test module
         exts.append( Extension('_testcapi', ['_testcapimodule.c'],
-                               depends=['testcapi_long.h']) )
+                               depends=['testcapi_long.h'], libraries=sys_libs) )
         # Python PEP-3118 (buffer protocol) test module
-        exts.append( Extension('_testbuffer', ['_testbuffer.c']) )
+        exts.append( Extension('_testbuffer', ['_testbuffer.c'], libraries=sys_libs) )
         # Test loading multiple modules from one compiled file (http://bugs.python.org/issue16421)
-        exts.append( Extension('_testimportmultiple', ['_testimportmultiple.c']) )
+        exts.append( Extension('_testimportmultiple', ['_testimportmultiple.c'], libraries=sys_libs) )
         # profiler (_lsprof is for cProfile.py)
-        exts.append( Extension('_lsprof', ['_lsprof.c', 'rotatingtree.c']) )
+        exts.append( Extension('_lsprof', ['_lsprof.c', 'rotatingtree.c'], libraries=sys_libs) )
         # static Unicode character database
-        exts.append( Extension('unicodedata', ['unicodedata.c']) )
+        exts.append( Extension('unicodedata', ['unicodedata.c'], libraries=sys_libs) )
         # _opcode module
-        exts.append( Extension('_opcode', ['_opcode.c']) )
+        exts.append( Extension('_opcode', ['_opcode.c'], libraries=sys_libs) )
 
         # Modules with some UNIX dependencies -- on by default:
         # (If you have a really backward UNIX, select and socket may not be
         # supported...)
 
         # fcntl(2) and ioctl(2)
-        libs = []
+        libs = ['c', 'dl']
         if (config_h_vars.get('FLOCK_NEEDS_LIBBSD', False)):
             # May be necessary on AIX for flock function
-            libs = ['bsd']
+            libs = ['c', 'dl', 'bsd']
         exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
         # pwd(3)
-        exts.append( Extension('pwd', ['pwdmodule.c']) )
+        exts.append( Extension('pwd', ['pwdmodule.c'], libraries=sys_libs) )
         # grp(3)
-        exts.append( Extension('grp', ['grpmodule.c']) )
+        exts.append( Extension('grp', ['grpmodule.c'], libraries=sys_libs) )
         # spwd, shadow passwords
         if (config_h_vars.get('HAVE_GETSPNAM', False) or
                 config_h_vars.get('HAVE_GETSPENT', False)):
-            exts.append( Extension('spwd', ['spwdmodule.c']) )
+            exts.append( Extension('spwd', ['spwdmodule.c'], libraries=sys_libs) )
         else:
             missing.append('spwd')
 
         # select(2); not on ancient System V
         # pyepoll_poll needs math_libs for ceil()
         exts.append( Extension('select', ['selectmodule.c'],
-                               libraries=math_libs) )
+                               libraries=sys_libs) )
 
         # Fred Drake's interface to the Python parser
-        exts.append( Extension('parser', ['parsermodule.c']) )
+        exts.append( Extension('parser', ['parsermodule.c'], libraries=sys_libs) )
 
         # Memory-mapped files (also works on Win32).
-        exts.append( Extension('mmap', ['mmapmodule.c']) )
+        exts.append( Extension('mmap', ['mmapmodule.c'], libraries=sys_libs) )
 
         # Lance Ellinghaus's syslog module
         # syslog daemon interface
-        exts.append( Extension('syslog', ['syslogmodule.c']) )
+        exts.append( Extension('syslog', ['syslogmodule.c'], libraries=sys_libs) )
 
         #
         # Here ends the simple stuff.  From here on, modules need certain
@@ -661,7 +664,7 @@ class PyBuildExt(build_ext):
 
         # audioop needs math_libs for floor() in multiple functions.
         exts.append( Extension('audioop', ['audioop.c'],
-                               libraries=math_libs) )
+                               libraries=sys_libs) )
 
         # readline
         do_readline = self.compiler.find_library_file(lib_dirs, 'readline')
@@ -730,7 +733,7 @@ class PyBuildExt(build_ext):
             else:
                 readline_extra_link_args = ()
 
-            readline_libs = ['readline']
+            readline_libs = ['c', 'dl', 'readline']
             if readline_termcap_library:
                 pass # Issue 7384: Already linked against curses or tinfo.
             elif curses_library:
@@ -749,20 +752,20 @@ class PyBuildExt(build_ext):
         # crypt module.
 
         if self.compiler.find_library_file(lib_dirs, 'crypt'):
-            libs = ['crypt']
+            libs = ['c', 'dl', 'crypt']
         else:
-            libs = []
+            libs = ['c', 'dl']
         exts.append( Extension('_crypt', ['_cryptmodule.c'], libraries=libs) )
 
         # CSV files
-        exts.append( Extension('_csv', ['_csv.c']) )
+        exts.append( Extension('_csv', ['_csv.c'], libraries=sys_libs) )
 
         # POSIX subprocess module helper.
-        exts.append( Extension('_posixsubprocess', ['_posixsubprocess.c']) )
+        exts.append( Extension('_posixsubprocess', ['_posixsubprocess.c'], libraries=sys_libs) )
 
         # socket(2)
         exts.append( Extension('_socket', ['socketmodule.c'],
-                               depends = ['socketmodule.h']) )
+                               depends = ['socketmodule.h'], libraries=sys_libs) )
         # Detect SSL support for the socket module (via _ssl)
         search_for_ssl_incs_in = [
                               '/usr/local/ssl/include',
@@ -786,7 +789,7 @@ class PyBuildExt(build_ext):
             exts.append( Extension('_ssl', ['_ssl.c'],
                                    include_dirs = ssl_incs,
                                    library_dirs = ssl_libs,
-                                   libraries = ['ssl', 'crypto'],
+                                   libraries = ['c', 'dl', 'ssl', 'crypto'],
                                    depends = ['socketmodule.h']), )
         else:
             missing.append('_ssl')
@@ -827,7 +830,7 @@ class PyBuildExt(build_ext):
                                        depends = ['hashlib.h'],
                                        include_dirs = ssl_incs,
                                        library_dirs = ssl_libs,
-                                       libraries = ['ssl', 'crypto']) )
+                                       libraries = ['c', 'dl', 'ssl', 'crypto']) )
             else:
                 print("warning: openssl 0x%08x is too old for _hashlib" %
                       openssl_ver)
@@ -837,13 +840,13 @@ class PyBuildExt(build_ext):
         # It's harmless and the object code is tiny (40-50 KB per module,
         # only loaded when actually used).
         exts.append( Extension('_sha256', ['sha256module.c'],
-                               depends=['hashlib.h']) )
+                               depends=['hashlib.h'], libraries=sys_libs) )
         exts.append( Extension('_sha512', ['sha512module.c'],
-                               depends=['hashlib.h']) )
+                               depends=['hashlib.h'], libraries=sys_libs) )
         exts.append( Extension('_md5', ['md5module.c'],
-                               depends=['hashlib.h']) )
+                               depends=['hashlib.h'], libraries=sys_libs) )
         exts.append( Extension('_sha1', ['sha1module.c'],
-                               depends=['hashlib.h']) )
+                               depends=['hashlib.h'], libraries=sys_libs) )
 
         # Modules that provide persistent dictionary-like semantics.  You will
         # probably want to arrange for at least one of them to be available on
@@ -1255,9 +1258,9 @@ class PyBuildExt(build_ext):
         # Unix-only modules
         if host_platform != 'win32':
             # Steen Lumholt's termios module
-            exts.append( Extension('termios', ['termios.c']) )
+            exts.append( Extension('termios', ['termios.c'], libraries=sys_libs) )
             # Jeremy Hylton's rlimit interface
-            exts.append( Extension('resource', ['resource.c']) )
+            exts.append( Extension('resource', ['resource.c'], libraries=sys_libs) )
 
             # Sun yellow pages. Some systems have the functions in libc.
             if (host_platform not in ['cygwin', 'qnx6'] and
@@ -1364,7 +1367,7 @@ class PyBuildExt(build_ext):
                     else:
                         zlib_extra_link_args = ()
                     exts.append( Extension('zlib', ['zlibmodule.c'],
-                                           libraries = ['z'],
+                                           libraries = ['c', 'dl', 'z'],
                                            extra_link_args = zlib_extra_link_args))
                     have_zlib = True
                 else:
@@ -1378,7 +1381,7 @@ class PyBuildExt(build_ext):
         # crc32 if we have it.  Otherwise binascii uses its own.
         if have_zlib:
             extra_compile_args = ['-DUSE_ZLIB_CRC32']
-            libraries = ['z']
+            libraries = ['c', 'dl', 'z']
             extra_link_args = zlib_extra_link_args
         else:
             extra_compile_args = []
@@ -1396,7 +1399,7 @@ class PyBuildExt(build_ext):
             else:
                 bz2_extra_link_args = ()
             exts.append( Extension('_bz2', ['_bz2module.c'],
-                                   libraries = ['bz2'],
+                                   libraries = ['c', 'dl', 'bz2'],
                                    extra_link_args = bz2_extra_link_args) )
         else:
             missing.append('_bz2')
@@ -1404,7 +1407,7 @@ class PyBuildExt(build_ext):
         # LZMA compression support.
         if self.compiler.find_library_file(lib_dirs, 'lzma'):
             exts.append( Extension('_lzma', ['_lzmamodule.c'],
-                                   libraries = ['lzma']) )
+                                   libraries = ['c', 'dl', 'lzma']) )
         else:
             missing.append('_lzma')
 
@@ -1422,7 +1425,7 @@ class PyBuildExt(build_ext):
         if '--with-system-expat' in sysconfig.get_config_var("CONFIG_ARGS"):
             expat_inc = []
             define_macros = []
-            expat_lib = ['expat']
+            expat_lib = ['c', 'dl', 'expat']
             expat_sources = []
             expat_depends = []
         else:
@@ -1513,7 +1516,7 @@ class PyBuildExt(build_ext):
 
         else:                                   # Linux and other unices
             macros = dict()
-            libraries = ['rt']
+            libraries = ['c', 'dl', 'm', 'rt']
 
         if host_platform == 'win32':
             multiprocessing_srcs = [ '_multiprocessing/multiprocessing.c',
@@ -1561,10 +1564,10 @@ class PyBuildExt(build_ext):
 ##         ext = Extension('xx', ['xxmodule.c'])
 ##         self.extensions.append(ext)
 
-        if 'd' not in sys.abiflags:
-            ext = Extension('xxlimited', ['xxlimited.c'],
-                            define_macros=[('Py_LIMITED_API', '0x03040000')])
-            self.extensions.append(ext)
+#        if 'd' not in sys.abiflags:
+#            ext = Extension('xxlimited', ['xxlimited.c'],
+#                            define_macros=[('Py_LIMITED_API', '0x03040000')])
+#            self.extensions.append(ext)
 
         return missing
 
@@ -1866,7 +1869,7 @@ class PyBuildExt(build_ext):
 
                 # Pass empty CFLAGS because we'll just append the resulting
                 # CFLAGS to Python's; -g or -O2 is to be avoided.
-                cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \
+                cmd = "cd %s && CFLAGS='' '%s/configure' %s" \
                       % (ffi_builddir, ffi_srcdir, " ".join(config_args))
 
                 res = os.system(cmd)
@@ -1925,18 +1928,26 @@ class PyBuildExt(build_ext):
 
         elif host_platform.startswith('hp-ux'):
             extra_link_args.append('-fPIC')
+        # to add -fPIC for Android
+        # assumes use of host triplet set to arm-linux-androideabi
+        elif host_platform.startswith('arm-linux')
+            extra_link_args.append('-fPIC')
+        # in case host triplet not set to arm-linux-androideabi
+        # android systems in KBOX usually report as linux
+        elif host_platform.startswith('linux')
+            extra_link_args.append('-fPIC')
 
         ext = Extension('_ctypes',
                         include_dirs=include_dirs,
                         extra_compile_args=extra_compile_args,
                         extra_link_args=extra_link_args,
-                        libraries=[],
+                        libraries=['c', 'dl'],
                         sources=sources,
                         depends=depends)
         # function my_sqrt() needs math library for sqrt()
         ext_test = Extension('_ctypes_test',
                              sources=['_ctypes/_ctypes_test.c'],
-                             libraries=['m'])
+                             libraries=['c', 'dl', 'm'])
         self.extensions.extend([ext, ext_test])
 
         if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
@@ -1977,7 +1988,7 @@ class PyBuildExt(build_ext):
         undef_macros = []
         if '--with-system-libmpdec' in sysconfig.get_config_var("CONFIG_ARGS"):
             include_dirs = []
-            libraries = [':libmpdec.so.2']
+            libraries = ['c', 'dl', 'm', ':libmpdec.so.2']
             sources = ['_decimal/_decimal.c']
             depends = ['_decimal/docstrings.h']
         else:
@@ -1986,7 +1997,7 @@ class PyBuildExt(build_ext):
                                                          'Modules',
                                                          '_decimal',
                                                          'libmpdec'))]
-            libraries = []
+            libraries = ['c', 'dl', 'm']
             sources = [
               '_decimal/_decimal.c',
               '_decimal/libmpdec/basearith.c',
@@ -2226,7 +2237,7 @@ def main():
                       'install_lib': PyBuildInstallLib},
           # The struct module is defined here, because build_ext won't be
           # called unless there's at least one extension module defined.
-          ext_modules=[Extension('_struct', ['_struct.c'])],
+          ext_modules=[Extension('_struct', ['_struct.c'], libraries = ['c', 'dl', 'z'])],
 
           # If you change the scripts installed here, you also need to
           # check the PyBuildScripts command above, and change the links
