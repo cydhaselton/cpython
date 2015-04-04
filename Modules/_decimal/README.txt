@@ -42,5 +42,6 @@ decimal.so is not built from a static libmpdec.a since doing so led to
 failures on AIX (user report) and Windows (mixing static and dynamic CRTs
 causes locale problems and more).
 
-
-
+As of 3.1.2015, preliminary support for Android has been added to the module by information
+from rjmatthew62@gmail.com. More details can be found at https://code.google.com/p/python-for-android/wiki/CrossCompilingPython.
+in the Code Changes section.
